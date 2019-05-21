@@ -28,6 +28,7 @@ import nin
 import resnet50
 import resnext50
 
+chainer.cuda.set_max_workspace_size(12 * 1024 * 1024 * 1024) 
 
 class PreprocessedDataset(chainer.dataset.DatasetMixin):
 
@@ -121,6 +122,7 @@ def main():
     parser.set_defaults(test=False)
     parser.add_argument('--dali', action='store_true')
     parser.set_defaults(dali=False)
+    parser.add_argument('--mixed', action='store_true', default=False, help='Using mixed precision or not')
     group = parser.add_argument_group('deprecated arguments')
     group.add_argument('--gpu', '-g', dest='device',
                        type=int, nargs='?', const=0,
@@ -131,7 +133,10 @@ def main():
 
     # Set the dtype if supplied.
     if args.dtype is not None:
-        chainer.config.dtype = args.dtype
+        if args.dtype == np.float16 and args.mixed:
+            chainer.config.dtype = chainer.mixed16
+        else:
+            chainer.config.dtype = args.dtype
 
     print('Device: {}'.format(device))
     print('Dtype: {}'.format(chainer.config.dtype))

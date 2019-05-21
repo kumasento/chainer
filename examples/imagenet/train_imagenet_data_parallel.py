@@ -39,11 +39,19 @@ def main():
         'resnet50': resnet50.ResNet50,
         'resnext50': resnext50.ResNeXt50,
     }
+    dtypes = {
+        'mixed16': chainer.mixed16,
+        'float16': np.float16,
+        'float32': np.float32,
+        'float64': np.float64,
+    }
 
     parser = argparse.ArgumentParser(
         description='Learning convnet from ILSVRC2012 dataset')
     parser.add_argument('train', help='Path to training image-label list file')
     parser.add_argument('val', help='Path to validation image-label list file')
+    parser.add_argument('--dtype', choices=dtypes, help='Specify the dtype '
+                        'used. If not supplied, the default dtype is used')
     parser.add_argument('--arch', '-a', choices=archs.keys(),
                         default='nin', help='Convnet architecture')
     parser.add_argument('--batchsize', '-B', type=int, default=32,
@@ -69,6 +77,9 @@ def main():
     parser.add_argument('--test', action='store_true')
     parser.set_defaults(test=False)
     args = parser.parse_args()
+
+    if args.dtype is not None:
+        chainer.config.dtype = args.dtype
 
     # Initialize the model to train
     model = archs[args.arch]()
